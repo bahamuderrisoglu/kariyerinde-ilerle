@@ -1,0 +1,377 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Kariyerinde İlerle - 10 Parmak Yazma Kulübü</title>
+<style>
+  :root {
+    --bg: #0f0f0f; --bg2: #1a1a1a; --bg3: #141414; --bg4: #1e1e1e;
+    --border: #222; --border2: #2a2a2a;
+    --text: #e0e0e0; --text-muted: #aaa; --text-dim: #666;
+    --pending: #c8c8c8;
+    --key-text: #bbb; --key-wide: #777;
+    --accent: #4fc3f7; --accent2: #26a69a; --pressed: #2a2a2a;
+  }
+  body.day {
+    --bg: #f0f0f0; --bg2: #e0e0e0; --bg3: #ebebeb; --bg4: #d8d8d8;
+    --border: #ccc; --border2: #bbb;
+    --text: #111; --text-muted: #444; --text-dim: #888;
+    --pending: #222;
+    --key-text: #222; --key-wide: #555; --pressed: #c0c0c0;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Courier New', monospace; background: var(--bg); color: var(--text); min-height: 100vh; transition: background 0.3s, color 0.3s; }
+  #app { max-width: 900px; margin: 0 auto; padding: 20px; }
+
+  .header-row { display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 24px; }
+  h1 { font-size: 22px; font-weight: 700; color: var(--accent); letter-spacing: 2px; text-transform: uppercase; margin-bottom: 4px; }
+  .subtitle { font-size: 12px; color: var(--text-dim); letter-spacing: 3px; }
+  .theme-toggle { display: flex; align-items: center; gap: 8px; cursor: pointer; background: var(--bg2); border: 1px solid var(--border); border-radius: 20px; padding: 6px 14px; font-size: 12px; color: var(--text-muted); transition: all 0.2s; user-select: none; }
+  .theme-toggle:hover { border-color: var(--accent); color: var(--accent); }
+
+  .stats-row { display: flex; gap: 12px; margin-bottom: 20px; }
+  .stat { background: var(--bg2); border: 1px solid var(--border); border-radius: 8px; padding: 12px 16px; flex: 1; text-align: center; }
+  .stat-val { font-size: 26px; font-weight: 700; color: var(--accent); }
+  .stat-label { font-size: 11px; color: var(--text-dim); letter-spacing: 2px; margin-top: 2px; }
+
+  .lesson-selector { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 20px; }
+  .lesson-btn { background: var(--bg2); border: 1px solid var(--border); border-radius: 6px; padding: 8px 14px; font-size: 12px; cursor: pointer; color: var(--text-muted); transition: all 0.2s; font-family: monospace; }
+  .lesson-btn:hover { border-color: var(--accent); color: var(--accent); }
+  .lesson-btn.active { background: var(--accent); color: #000; border-color: var(--accent); font-weight: 700; }
+  .lesson-btn.completed { border-color: var(--accent2); color: var(--accent2); }
+
+  .lesson-title { font-size: 13px; color: var(--text-dim); margin-bottom: 12px; letter-spacing: 1px; }
+  .lesson-title span { color: var(--accent); }
+
+  .progress-bar { background: var(--bg2); border-radius: 4px; height: 6px; margin-bottom: 20px; overflow: hidden; }
+  .progress-fill { height: 100%; background: linear-gradient(90deg, var(--accent), var(--accent2)); border-radius: 4px; transition: width 0.3s; }
+
+  .text-display { background: var(--bg3); border: 1px solid var(--border); border-radius: 10px; padding: 24px; margin-bottom: 16px; font-size: 24px; line-height: 2; letter-spacing: 2px; min-height: 80px; cursor: text; }
+  .char { display: inline-block; transition: color 0.08s; }
+  .char.correct { color: var(--accent2); }
+  .char.wrong { color: #ef5350; background: rgba(239,83,80,0.15); border-radius: 2px; }
+  .char.current { color: #000; background: var(--accent); border-radius: 3px; animation: blink 0.8s infinite; }
+  .char.pending { color: var(--pending); }
+  @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0.5} }
+
+  #typing-input { position: absolute; left: -9999px; opacity: 0; width: 1px; height: 1px; }
+
+  .result-panel { background: var(--bg3); border: 1px solid var(--accent2); border-radius: 10px; padding: 24px; text-align: center; display: none; margin-bottom: 20px; }
+  .result-panel.show { display: block; }
+  .result-title { font-size: 20px; color: var(--accent); margin-bottom: 10px; letter-spacing: 2px; }
+  .result-stars { font-size: 34px; letter-spacing: 6px; margin-bottom: 4px; }
+  .result-score-label { font-size: 12px; color: var(--text-dim); letter-spacing: 2px; margin-bottom: 18px; }
+  .result-stats { display: flex; gap: 16px; justify-content: center; margin-bottom: 20px; }
+  .result-stat { text-align: center; }
+  .result-stat-val { font-size: 28px; font-weight: 700; color: var(--accent2); }
+  .result-stat-label { font-size: 11px; color: var(--text-dim); letter-spacing: 2px; }
+  .next-btn { background: var(--accent); color: #000; border: none; border-radius: 8px; padding: 12px 32px; font-size: 14px; font-weight: 700; cursor: pointer; letter-spacing: 1px; }
+  .next-btn:hover { opacity: 0.85; }
+  .retry-btn { background: transparent; color: var(--text-dim); border: 1px solid var(--border); border-radius: 8px; padding: 12px 24px; font-size: 13px; cursor: pointer; margin-left: 10px; }
+  .retry-btn:hover { border-color: var(--accent); color: var(--accent); }
+
+  .keyboard { background: var(--bg3); border: 1px solid var(--border); border-radius: 12px; padding: 16px; margin-top: 20px; }
+  .kb-row { display: flex; gap: 5px; margin-bottom: 5px; justify-content: center; }
+  .key { display: flex; align-items: center; justify-content: center; background: var(--bg4); border: 1px solid var(--border2); border-bottom: 3px solid var(--bg); border-radius: 6px; width: 46px; height: 42px; font-size: 13px; font-weight: 600; color: var(--key-text); transition: all 0.08s; font-family: monospace; flex-shrink: 0; }
+  .key.wide { width: 70px; font-size: 10px; color: var(--key-wide); }
+  .key.space { width: 280px; }
+  .key.highlight { background: var(--accent); color: #000; border-color: var(--accent); border-bottom-color: #0277bd; transform: scale(1.08); }
+  .key.pressed { transform: scale(0.93); border-bottom-width: 1px; background: var(--pressed); }
+
+  .fs1 { border-bottom-color: #e53935 !important; }
+  .fs2 { border-bottom-color: #fb8c00 !important; }
+  .fs3 { border-bottom-color: #fdd835 !important; }
+  .fs4 { border-bottom-color: #43a047 !important; }
+  .fd5 { border-bottom-color: #00acc1 !important; }
+  .fd6 { border-bottom-color: #1e88e5 !important; }
+  .fd7 { border-bottom-color: #ab47bc !important; }
+  .fd8 { border-bottom-color: #e53935 !important; }
+
+  .finger-guide { display: flex; gap: 6px; justify-content: center; margin-top: 12px; flex-wrap: wrap; }
+  .fg { font-size: 10px; padding: 3px 8px; border-radius: 20px; }
+  .fg-r { background: rgba(229,57,53,0.15);  color: #ef5350; border: 1px solid #e53935; }
+  .fg-o { background: rgba(251,140,0,0.15);  color: #ffa726; border: 1px solid #fb8c00; }
+  .fg-y { background: rgba(253,216,53,0.15); color: #c8a900; border: 1px solid #fdd835; }
+  .fg-g { background: rgba(67,160,71,0.15);  color: #66bb6a; border: 1px solid #43a047; }
+  .fg-b { background: rgba(30,136,229,0.15); color: #42a5f5; border: 1px solid #1e88e5; }
+  .fg-c { background: rgba(0,172,193,0.15); color: #00acc1; border: 1px solid #00acc1; }
+  body.day .fg-y { color: #7a6400; }
+</style>
+</head>
+<body>
+<div id="app">
+  <div class="header-row">
+    <div>
+      <h1>Kariyerinde İlerle</h1>
+      <p class="subtitle">10 Parmak Yazma Kulübü</p>
+    </div>
+    <div class="theme-toggle" onclick="toggleTheme()">
+      <span id="toggle-icon">☀️</span>
+      <span id="toggle-label">Gündüz Modu</span>
+    </div>
+  </div>
+
+  <div class="stats-row">
+    <div class="stat"><div class="stat-val" id="wpm">0</div><div class="stat-label">K/D</div></div>
+    <div class="stat"><div class="stat-val" id="acc">100</div><div class="stat-label">DOĞRULUK %</div></div>
+    <div class="stat"><div class="stat-val" id="errors">0</div><div class="stat-label">HATA</div></div>
+    <div class="stat"><div class="stat-val" id="time">0</div><div class="stat-label">SÜRE (s)</div></div>
+  </div>
+
+  <div class="lesson-selector" id="lesson-selector"></div>
+  <div class="lesson-title" id="lesson-title"></div>
+  <div class="progress-bar"><div class="progress-fill" id="progress" style="width:0%"></div></div>
+  <div class="text-display" id="text-display" onclick="document.getElementById('typing-input').focus()"></div>
+  <input type="text" id="typing-input" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" />
+
+  <div class="result-panel" id="result-panel">
+    <div class="result-title">✓ DERS TAMAMLANDI!</div>
+    <div class="result-stars" id="result-stars">★★★★★</div>
+    <div class="result-score-label" id="result-score-label">Mükemmel!</div>
+    <div class="result-stats">
+      <div class="result-stat"><div class="result-stat-val" id="r-wpm">0</div><div class="result-stat-label">K/D</div></div>
+      <div class="result-stat"><div class="result-stat-val" id="r-acc">0</div><div class="result-stat-label">DOĞRULUK</div></div>
+      <div class="result-stat"><div class="result-stat-val" id="r-errors">0</div><div class="result-stat-label">HATA</div></div>
+    </div>
+    <button class="next-btn" id="next-btn">Sonraki Ders →</button>
+    <button class="retry-btn" id="retry-btn">Tekrar Dene</button>
+  </div>
+
+  <div class="keyboard" id="keyboard"></div>
+
+  <div class="finger-guide" style="margin-top:12px;">
+    <span class="fg fg-r">Serçe Sol (A Q Z 1)</span>
+    <span class="fg fg-o">Yüzük Sol (S W X 2)</span>
+    <span class="fg fg-y">Orta Sol (D E C 3)</span>
+    <span class="fg fg-g">İşaret Sol (F G R T V B 4 5)</span>
+    <span class="fg fg-c">İşaret Sağ (J H Y U M N 6 7)</span>
+    <span class="fg fg-b">Orta Sağ (K I Ö 8)</span>
+    <span class="fg fg-p">Yüzük Sağ (L O Ç 9)</span>
+    <span class="fg fg-r">Serçe Sağ (Ş P Ğ Ü İ 0)</span>
+  </div>
+</div>
+
+<script>
+const LESSONS = [
+  { id:1,  name:"Ders 1",  desc:"Ana sıra: Sol el (ASDF)",   text:"asdf asdf asdf fdsa fdsa fdsa asd fds adf sdf asdf fdsa dafa sada fasa" },
+  { id:2,  name:"Ders 2",  desc:"Ana sıra: Sağ el (JKL)",    text:"jkl jkl lkj lkj jkl lkj jkl lkj jkl lkj jkl lkj jkl lkj jkl jkl lkj" },
+  { id:3,  name:"Ders 3",  desc:"Ana sıra: Her iki el",      text:"asdf jkl asdf jkl jak fal jak sal klas dask flak jask flak dask jak fal" },
+  { id:4,  name:"Ders 4",  desc:"G ve H tuşları",            text:"asdf gh jkl asdf ghjk asgf hjkl ghfd jkgh asgh fghj asdf gfhj jkgh fgh" },
+  { id:5,  name:"Ders 5",  desc:"Üst sıra: E R U",           text:"red rue user sure fire ride rude ewer rule dire sure red rue user sure" },
+  { id:6,  name:"Ders 6",  desc:"Üst sıra: W T Y O",         text:"two toy wow tow toy two toy wow tow toy two toy wow tow toy two wow tow" },
+  { id:7,  name:"Ders 7",  desc:"Üst sıra: Q P",             text:"ip ipe pipo kip kipo ip ipe pipo kip kipo ip ipe pipo kip kipo ip ipe" },
+  { id:8,  name:"Ders 8",  desc:"Alt sıra: Z X C V",         text:"cave vice vex exec civic cave vexed civic vex cave vice civic exec cave" },
+  { id:9,  name:"Ders 9",  desc:"Alt sıra: B N M",           text:"burn man ban men bomb name barn mine numb man burn name band mine numb" },
+  { id:10, name:"Ders 10", desc:"Türkçe: Ş Ç",              text:"ses cis sis ces ses cis sis ces ses cis sis ces ses cis sis ces cis sis" },
+  { id:11, name:"Ders 11", desc:"Türkçe: Ğ Ü Ö",            text:"ug ou ugu ouo ug ou ugu ouo ug ou ugu ouo ug ou ugu ouo ug ou ugu ouo" },
+  { id:12, name:"Ders 12", desc:"Türkçe kelimeler",          text:"araba okul masa bilgi kitap masa okul araba bilgi kitap masa okul araba" },
+  { id:13, name:"Ders 13", desc:"Sayılar 1-5",               text:"123 45 123 45 234 135 345 124 235 145 123 45 234 135 345 124 235 145" },
+  { id:14, name:"Ders 14", desc:"Sayılar 6-0",               text:"678 90 789 60 890 67 678 90 789 60 890 67 678 90 789 60 890 67 6789" },
+  { id:15, name:"Ders 15", desc:"Tam metin",                 text:"turkiye guzel bir ulkedir istanbul ankara izmir buyuk sehirlerdir okul egitim bilgisayar ogrenci" },
+];
+
+// Parmak renk kodları:
+// fs1=sol serçe  fs2=sol yüzük  fs3=sol orta  fs4=sol işaret
+// fd5=sağ işaret fd6=sağ orta   fd7=sağ yüzük fd8=sağ serçe
+const KB_ROWS = [
+  [
+    {k:'"'},
+    {k:'1',f:'fs1'},{k:'2',f:'fs2'},{k:'3',f:'fs3'},{k:'4',f:'fs4'},{k:'5',f:'fs4'},
+    {k:'6',f:'fd5'},{k:'7',f:'fd5'},{k:'8',f:'fd6'},{k:'9',f:'fd7'},{k:'0',f:'fd8'},
+    {k:'*',f:'fd8'},{k:'-',f:'fd8'},{k:'←',wide:true}
+  ],
+  [
+    {k:'Tab',wide:true},
+    {k:'Q',f:'fs1'},{k:'W',f:'fs2'},{k:'E',f:'fs3'},{k:'R',f:'fs4'},{k:'T',f:'fs4'},
+    {k:'Y',f:'fd5'},{k:'U',f:'fd5'},{k:'I',f:'fd6'},{k:'O',f:'fd7'},{k:'P',f:'fd8'},
+    {k:'Ğ',f:'fd8'},{k:'Ü',f:'fd8'},{k:'Enter',wide:true}
+  ],
+  [
+    {k:'Caps',wide:true},
+    {k:'A',f:'fs1'},{k:'S',f:'fs2'},{k:'D',f:'fs3'},{k:'F',f:'fs4'},{k:'G',f:'fs4'},
+    {k:'H',f:'fd5'},{k:'J',f:'fd5'},{k:'K',f:'fd6'},{k:'L',f:'fd7'},{k:'Ş',f:'fd8'},
+    {k:'İ',f:'fd8'},{k:',',f:'fd8'}
+  ],
+  [
+    {k:'Shift',wide:true},
+    {k:'Z',f:'fs1'},{k:'X',f:'fs2'},{k:'C',f:'fs3'},{k:'V',f:'fs4'},{k:'B',f:'fs4'},
+    {k:'N',f:'fd5'},{k:'M',f:'fd5'},{k:'Ö',f:'fd6'},{k:'Ç',f:'fd7'},{k:'.',f:'fd8'},
+    {k:'Shift',wide:true}
+  ],
+  [
+    {k:'Ctrl',wide:true},{k:'Alt',wide:true},{k:' ',space:true},{k:'AltGr',wide:true},{k:'Ctrl',wide:true}
+  ]
+];
+
+const STAR_LABELS = ['', 'Daha fazla pratik yap!', 'İyi başlangıç!', 'Fena değil!', 'Çok iyi!', 'Mükemmel!'];
+
+function calcStars(kd, acc, errors) {
+  const kdScore  = Math.min(kd / 60, 1);
+  const accScore = acc / 100;
+  const errScore = Math.max(0, 1 - errors / 10);
+  const total = kdScore * 0.5 + accScore * 0.4 + errScore * 0.1;
+  return Math.max(1, Math.round(total * 5));
+}
+
+let isDay = false;
+function toggleTheme() {
+  isDay = !isDay;
+  document.body.classList.toggle('day', isDay);
+  document.getElementById('toggle-icon').textContent  = isDay ? '🌙' : '☀️';
+  document.getElementById('toggle-label').textContent = isDay ? 'Gece Modu' : 'Gündüz Modu';
+}
+
+let currentLesson = 0, currentText = '', typed = '', errors = 0;
+let startTime = null, timer = null, completed = false;
+let bestScores = {};
+try { bestScores = JSON.parse(localStorage.getItem('kiy_klub') || '{}'); } catch(e) {}
+
+function buildKeyboard() {
+  const kb = document.getElementById('keyboard');
+  kb.innerHTML = '';
+  KB_ROWS.forEach(row => {
+    const rowDiv = document.createElement('div');
+    rowDiv.className = 'kb-row';
+    row.forEach(key => {
+      const div = document.createElement('div');
+      let cls = 'key';
+      if (key.wide)  cls += ' wide';
+      if (key.space) cls += ' space';
+      if (key.f)     cls += ' ' + key.f;
+      div.className = cls;
+      div.textContent = key.k;
+      div.id = 'key-' + (key.space ? 'space' : key.k.toLowerCase());
+      rowDiv.appendChild(div);
+    });
+    kb.appendChild(rowDiv);
+  });
+}
+
+function buildLessonSelector() {
+  const sel = document.getElementById('lesson-selector');
+  sel.innerHTML = '';
+  LESSONS.forEach((l, i) => {
+    const btn = document.createElement('button');
+    let cls = 'lesson-btn';
+    if (i === currentLesson) cls += ' active';
+    else if (bestScores[l.id]) cls += ' completed';
+    btn.className = cls;
+    btn.textContent = l.name;
+    btn.onclick = () => { currentLesson = i; loadLesson(); };
+    sel.appendChild(btn);
+  });
+}
+
+function loadLesson() {
+  const lesson = LESSONS[currentLesson];
+  currentText = lesson.text;
+  typed = ''; errors = 0; startTime = null; completed = false;
+  clearInterval(timer);
+  document.getElementById('wpm').textContent    = '0';
+  document.getElementById('acc').textContent    = '100';
+  document.getElementById('errors').textContent = '0';
+  document.getElementById('time').textContent   = '0';
+  document.getElementById('progress').style.width = '0%';
+  document.getElementById('typing-input').value = '';
+  document.getElementById('result-panel').className = 'result-panel';
+  document.getElementById('lesson-title').innerHTML = '<span>' + lesson.name + '</span> — ' + lesson.desc;
+  renderText();
+  buildLessonSelector();
+  document.getElementById('typing-input').focus();
+}
+
+function renderText() {
+  const display = document.getElementById('text-display');
+  display.innerHTML = '';
+  document.querySelectorAll('.key.highlight').forEach(k => k.classList.remove('highlight'));
+  for (let i = 0; i < currentText.length; i++) {
+    const span = document.createElement('span');
+    span.textContent = currentText[i] === ' ' ? '\u00a0' : currentText[i];
+    if (i < typed.length) {
+      span.className = 'char ' + (typed[i] === currentText[i] ? 'correct' : 'wrong');
+    } else if (i === typed.length) {
+      span.className = 'char current';
+      highlightKey(currentText[i]);
+    } else {
+      span.className = 'char pending';
+    }
+    display.appendChild(span);
+  }
+}
+
+function highlightKey(ch) {
+  const id = ch === ' ' ? 'key-space' : 'key-' + ch.toLowerCase();
+  const el = document.getElementById(id);
+  if (el) el.classList.add('highlight');
+}
+
+function flashKey(ch) {
+  const id = ch === ' ' ? 'key-space' : 'key-' + ch.toLowerCase();
+  const el = document.getElementById(id);
+  if (el) { el.classList.add('pressed'); setTimeout(() => el.classList.remove('pressed'), 100); }
+}
+
+function updateStats() {
+  if (!startTime) return;
+  const elapsed = (Date.now() - startTime) / 1000;
+  const correct = [...typed].filter((c, i) => c === currentText[i]).length;
+  const kd  = elapsed > 0 ? Math.round((correct / 5) / (elapsed / 60)) : 0;
+  const acc = typed.length > 0 ? Math.round((correct / typed.length) * 100) : 100;
+  document.getElementById('wpm').textContent    = kd;
+  document.getElementById('acc').textContent    = acc;
+  document.getElementById('errors').textContent = errors;
+  document.getElementById('time').textContent   = Math.round(elapsed);
+  document.getElementById('progress').style.width = Math.round((typed.length / currentText.length) * 100) + '%';
+}
+
+function showResult() {
+  completed = true;
+  clearInterval(timer);
+  const elapsed = (Date.now() - startTime) / 1000;
+  const correct = [...typed].filter((c, i) => c === currentText[i]).length;
+  const kd  = elapsed > 0 ? Math.round((correct / 5) / (elapsed / 60)) : 0;
+  const acc = typed.length > 0 ? Math.round((correct / typed.length) * 100) : 100;
+  const stars = calcStars(kd, acc, errors);
+
+  document.getElementById('r-wpm').textContent    = kd;
+  document.getElementById('r-acc').textContent    = acc + '%';
+  document.getElementById('r-errors').textContent = errors;
+  document.getElementById('result-stars').textContent = '★'.repeat(stars) + '☆'.repeat(5 - stars);
+  document.getElementById('result-score-label').textContent = STAR_LABELS[stars];
+  document.getElementById('result-panel').className = 'result-panel show';
+
+  const lesson = LESSONS[currentLesson];
+  if (!bestScores[lesson.id] || kd > (bestScores[lesson.id].kd || 0)) {
+    bestScores[lesson.id] = { kd, acc, stars };
+    try { localStorage.setItem('kiy_klub', JSON.stringify(bestScores)); } catch(e) {}
+  }
+  buildLessonSelector();
+  document.querySelectorAll('.key.highlight').forEach(k => k.classList.remove('highlight'));
+}
+
+document.getElementById('typing-input').addEventListener('input', function() {
+  if (completed) return;
+  const val = this.value;
+  if (!startTime && val.length > 0) {
+    startTime = Date.now();
+    timer = setInterval(updateStats, 500);
+  }
+  const lastChar = val[val.length - 1] || '';
+  if (lastChar) flashKey(lastChar);
+  typed = val;
+  if (typed[typed.length-1] && typed[typed.length-1] !== currentText[typed.length-1]) errors++;
+  renderText();
+  updateStats();
+  if (typed.length >= currentText.length) setTimeout(showResult, 200);
+});
+
+document.getElementById('text-display').addEventListener('click', () => document.getElementById('typing-input').focus());
+document.getElementById('next-btn').onclick  = () => { if (currentLesson < LESSONS.length-1) { currentLesson++; loadLesson(); } };
+document.getElementById('retry-btn').onclick = loadLesson;
+
+buildKeyboard();
+loadLesson();
+</script>
+</body>
+</html>
