@@ -1,0 +1,262 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>10 Parmak Yazma Kulübü · Kariyerinde İlerle</title>
+<style>
+
+  :root {
+    --bg: #0f0f0f; --bg2: #1a1a1a; --bg3: #141414; --bg4: #1e1e1e;
+    --border: #222; --border2: #2a2a2a;
+    --text: #e8e8e8; --text-muted: #b0b0b0; --text-dim: #888;
+    --pending: #d8d8d8;
+    --key-text: #c8c8c8; --key-wide: #888;
+    --accent: #4fc3f7; --accent2: #26a69a; --pressed: #2a2a2a;
+    --card-bg: #111; --card-border: #1e1e1e;
+    --nav-bg: rgba(10,10,10,0.92);
+    --result-bg: #141414;
+  }
+  body.day {
+    --bg: #f5f5f5; --bg2: #eaeaea; --bg3: #f0f0f0; --bg4: #e0e0e0;
+    --border: #d0d0d0; --border2: #c0c0c0;
+    --text: #111; --text-muted: #333; --text-dim: #666;
+    --pending: #1a1a1a;
+    --key-text: #111; --key-wide: #444; --pressed: #c8c8c8;
+    --card-bg: #fff; --card-border: #ddd;
+    --nav-bg: rgba(245,245,245,0.95);
+    --result-bg: #f8f8f8;
+  }
+  body:not(.day) .club-desc, body:not(.day) .hero-sub,
+  body:not(.day) .lesson-desc-text, body:not(.day) .lesson-subdesc,
+  body:not(.day) .page-header p { color: #b8b8b8; }
+  body:not(.day) h1, body:not(.day) h2,
+  body:not(.day) .club-title, body:not(.day) .lesson-title-text,
+  body:not(.day) .lesson-h1 { color: #f0f0f0; }
+  .theme-btn-global {
+    display: flex; align-items: center; gap: 6px;
+    background: var(--bg2); border: 1px solid var(--border);
+    border-radius: 20px; padding: 5px 12px;
+    font-size: 12px; color: var(--text-muted);
+    cursor: pointer; transition: all 0.2s; user-select: none; font-family: inherit;
+  }
+  .theme-btn-global:hover { border-color: var(--accent); color: var(--accent); }
+
+  * { box-sizing:border-box; margin:0; padding:0; }
+  body { font-family:'Segoe UI',Arial,sans-serif; background:var(--bg); color:var(--text); min-height:100vh; transition:background .3s,color .3s; }
+  nav { display:flex; align-items:center; justify-content:space-between; padding:18px 48px; border-bottom:1px solid var(--border); position:sticky; top:0; background:var(--nav-bg); backdrop-filter:blur(8px); z-index:100; }
+  .nav-logo { font-size:16px; font-weight:800; color:var(--accent); letter-spacing:3px; text-transform:uppercase; text-decoration:none; }
+  .nav-right { display:flex; gap:20px; align-items:center; }
+  .nav-right a { color:var(--text-dim); font-size:13px; text-decoration:none; transition:color .2s; }
+  .nav-right a:hover { color:var(--accent); }
+  .page-header { text-align:center; padding:52px 24px 40px; border-bottom:1px solid var(--border); }
+  .page-tag { font-size:11px; letter-spacing:4px; color:var(--accent); text-transform:uppercase; margin-bottom:14px; }
+  .page-header h1 { font-size:clamp(24px,5vw,42px); font-weight:900; color:var(--text); margin-bottom:12px; }
+  .page-header p { font-size:15px; color:var(--text-dim); max-width:500px; margin:0 auto; line-height:1.7; }
+  .lessons-container { max-width:880px; margin:0 auto; padding:40px 24px; }
+  .section-title { font-size:11px; letter-spacing:3px; color:var(--text-dim); text-transform:uppercase; margin-bottom:12px; padding-bottom:8px; border-bottom:1px solid var(--border); }
+  .lessons-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(220px,1fr)); gap:12px; margin-bottom:36px; }
+  .lesson-card { background:var(--card-bg); border:1px solid var(--card-border); border-radius:12px; padding:20px; text-decoration:none; color:inherit; transition:all .2s; display:block; position:relative; overflow:hidden; }
+  .lesson-card::before { content:''; position:absolute; top:0; left:0; right:0; height:2px; background:linear-gradient(90deg,var(--accent),var(--accent2)); opacity:0; transition:opacity .2s; }
+  .lesson-card:hover { border-color:#333; transform:translateY(-3px); box-shadow:0 10px 32px rgba(0,0,0,.25); }
+  body.day .lesson-card:hover { border-color:#bbb; box-shadow:0 6px 20px rgba(0,0,0,.1); }
+  .lesson-card:hover::before { opacity:1; }
+  .lesson-num { font-size:11px; color:var(--text-dim); letter-spacing:2px; margin-bottom:7px; font-family:monospace; }
+  .lesson-title-text { font-size:14px; font-weight:700; color:var(--text); margin-bottom:5px; }
+  .lesson-desc-text { font-size:12px; color:var(--text-dim); line-height:1.5; margin-bottom:12px; }
+  .lesson-meta { display:flex; align-items:center; justify-content:space-between; }
+  .lesson-stars { font-size:13px; letter-spacing:2px; }
+  .lesson-arrow { font-size:14px; color:var(--border2); transition:color .2s; }
+  .lesson-card:hover .lesson-arrow { color:var(--accent); }
+  .lesson-card.completed { border-color:rgba(38,166,154,.3); }
+  .lesson-card.completed .lesson-num { color:var(--accent2); }
+  footer { text-align:center; padding:24px; color:var(--text-dim); font-size:12px; border-top:1px solid var(--border); letter-spacing:1px; }
+</style>
+</head>
+<body>
+<nav>
+  <a class="nav-logo" href="../index.html">Kariyerinde İlerle</a>
+  <div class="nav-right">
+    <a href="../index.html">← Ana Sayfa</a>
+    <button class="theme-btn-global" onclick="toggleTheme()">
+      <span id="toggle-icon">☀️</span><span id="toggle-label">Gündüz Modu</span>
+    </button>
+  </div>
+</nav>
+<div class="page-header">
+  <div class="page-tag">Kulüp 01</div>
+  <h1>⌨️ 10 Parmak Yazma Kulübü</h1>
+  <p>Türkçe Q klavye için hazırlanmış 21 derslik program. Her ders bir öncekinin üzerine inşa edilir.</p>
+</div>
+<div class="lessons-container">
+<div class="section-title">Ana Sıra Dersleri</div>
+<div class="lessons-grid">
+<a class="lesson-card" href="ders-1.html">
+      <div class="lesson-num">DERS 01</div>
+      <div class="lesson-title-text">Sol El — Ana Sıra</div>
+      <div class="lesson-desc-text">A S D F tuşlarıyla başlıyoruz.</div>
+      <div class="lesson-meta"><div class="lesson-stars" id="stars-1">☆☆☆☆☆</div><div class="lesson-arrow">→</div></div>
+    </a>
+<a class="lesson-card" href="ders-2.html">
+      <div class="lesson-num">DERS 02</div>
+      <div class="lesson-title-text">Sağ El — Ana Sıra</div>
+      <div class="lesson-desc-text">J K L tuşlarıyla devam.</div>
+      <div class="lesson-meta"><div class="lesson-stars" id="stars-2">☆☆☆☆☆</div><div class="lesson-arrow">→</div></div>
+    </a>
+<a class="lesson-card" href="ders-3.html">
+      <div class="lesson-num">DERS 03</div>
+      <div class="lesson-title-text">Her İki El — Ana Sıra</div>
+      <div class="lesson-desc-text">Sol ve sağ eli birlikte kullanma.</div>
+      <div class="lesson-meta"><div class="lesson-stars" id="stars-3">☆☆☆☆☆</div><div class="lesson-arrow">→</div></div>
+    </a>
+<a class="lesson-card" href="ders-4.html">
+      <div class="lesson-num">DERS 04</div>
+      <div class="lesson-title-text">G ve H Tuşları</div>
+      <div class="lesson-desc-text">İşaret parmaklarının orta tuşları.</div>
+      <div class="lesson-meta"><div class="lesson-stars" id="stars-4">☆☆☆☆☆</div><div class="lesson-arrow">→</div></div>
+    </a>
+</div>
+<div class="section-title">Üst Sıra Dersleri</div>
+<div class="lessons-grid">
+<a class="lesson-card" href="ders-5.html">
+      <div class="lesson-num">DERS 05</div>
+      <div class="lesson-title-text">E R U Tuşları</div>
+      <div class="lesson-desc-text">Üst sıranın en sık kullanılan tuşları.</div>
+      <div class="lesson-meta"><div class="lesson-stars" id="stars-5">☆☆☆☆☆</div><div class="lesson-arrow">→</div></div>
+    </a>
+<a class="lesson-card" href="ders-6.html">
+      <div class="lesson-num">DERS 06</div>
+      <div class="lesson-title-text">W T Y O Tuşları</div>
+      <div class="lesson-desc-text">Üst sıra tamamlanıyor.</div>
+      <div class="lesson-meta"><div class="lesson-stars" id="stars-6">☆☆☆☆☆</div><div class="lesson-arrow">→</div></div>
+    </a>
+<a class="lesson-card" href="ders-7.html">
+      <div class="lesson-num">DERS 07</div>
+      <div class="lesson-title-text">Q ve P Tuşları</div>
+      <div class="lesson-desc-text">Serçe parmak tuşları.</div>
+      <div class="lesson-meta"><div class="lesson-stars" id="stars-7">☆☆☆☆☆</div><div class="lesson-arrow">→</div></div>
+    </a>
+</div>
+<div class="section-title">Alt Sıra Dersleri</div>
+<div class="lessons-grid">
+<a class="lesson-card" href="ders-8.html">
+      <div class="lesson-num">DERS 08</div>
+      <div class="lesson-title-text">Z X C V Tuşları</div>
+      <div class="lesson-desc-text">Alt sıranın sol tarafı.</div>
+      <div class="lesson-meta"><div class="lesson-stars" id="stars-8">☆☆☆☆☆</div><div class="lesson-arrow">→</div></div>
+    </a>
+<a class="lesson-card" href="ders-9.html">
+      <div class="lesson-num">DERS 09</div>
+      <div class="lesson-title-text">B N M Tuşları</div>
+      <div class="lesson-desc-text">Alt sıranın sağ tarafı.</div>
+      <div class="lesson-meta"><div class="lesson-stars" id="stars-9">☆☆☆☆☆</div><div class="lesson-arrow">→</div></div>
+    </a>
+</div>
+<div class="section-title">Türkçe Karakterler</div>
+<div class="lessons-grid">
+<a class="lesson-card" href="ders-10.html">
+      <div class="lesson-num">DERS 10</div>
+      <div class="lesson-title-text">Ş ve Ç Tuşları</div>
+      <div class="lesson-desc-text">Türkçeye özel — serçe ve yüzük sağ.</div>
+      <div class="lesson-meta"><div class="lesson-stars" id="stars-10">☆☆☆☆☆</div><div class="lesson-arrow">→</div></div>
+    </a>
+<a class="lesson-card" href="ders-11.html">
+      <div class="lesson-num">DERS 11</div>
+      <div class="lesson-title-text">Ğ Ü Ö Tuşları</div>
+      <div class="lesson-desc-text">Türkçeye özel diğer karakterler.</div>
+      <div class="lesson-meta"><div class="lesson-stars" id="stars-11">☆☆☆☆☆</div><div class="lesson-arrow">→</div></div>
+    </a>
+<a class="lesson-card" href="ders-12.html">
+      <div class="lesson-num">DERS 12</div>
+      <div class="lesson-title-text">Türkçe Kelimeler</div>
+      <div class="lesson-desc-text">Tüm Türkçe karakterlerle kelime pratiği.</div>
+      <div class="lesson-meta"><div class="lesson-stars" id="stars-12">☆☆☆☆☆</div><div class="lesson-arrow">→</div></div>
+    </a>
+</div>
+<div class="section-title">Sayılar</div>
+<div class="lessons-grid">
+<a class="lesson-card" href="ders-13.html">
+      <div class="lesson-num">DERS 13</div>
+      <div class="lesson-title-text">Sayılar 1–5</div>
+      <div class="lesson-desc-text">Sayı sırasının sol tarafı.</div>
+      <div class="lesson-meta"><div class="lesson-stars" id="stars-13">☆☆☆☆☆</div><div class="lesson-arrow">→</div></div>
+    </a>
+<a class="lesson-card" href="ders-14.html">
+      <div class="lesson-num">DERS 14</div>
+      <div class="lesson-title-text">Sayılar 6–0</div>
+      <div class="lesson-desc-text">Sayı sırasının sağ tarafı.</div>
+      <div class="lesson-meta"><div class="lesson-stars" id="stars-14">☆☆☆☆☆</div><div class="lesson-arrow">→</div></div>
+    </a>
+<a class="lesson-card" href="ders-15.html">
+      <div class="lesson-num">DERS 15</div>
+      <div class="lesson-title-text">Tam Metin Pratiği</div>
+      <div class="lesson-desc-text">Tüm klavyeyi kullanan Türkçe cümleler.</div>
+      <div class="lesson-meta"><div class="lesson-stars" id="stars-15">☆☆☆☆☆</div><div class="lesson-arrow">→</div></div>
+    </a>
+</div>
+<div class="section-title">Noktalama İşaretleri</div>
+<div class="lessons-grid">
+<a class="lesson-card" href="ders-16.html">
+      <div class="lesson-num">DERS 16</div>
+      <div class="lesson-title-text">Nokta ve Virgül</div>
+      <div class="lesson-desc-text">Cümle sonu nokta ve liste virgülü.</div>
+      <div class="lesson-meta"><div class="lesson-stars" id="stars-16">☆☆☆☆☆</div><div class="lesson-arrow">→</div></div>
+    </a>
+<a class="lesson-card" href="ders-17.html">
+      <div class="lesson-num">DERS 17</div>
+      <div class="lesson-title-text">Soru ve Ünlem</div>
+      <div class="lesson-desc-text">Soru işareti ve ünlem işareti pratiği.</div>
+      <div class="lesson-meta"><div class="lesson-stars" id="stars-17">☆☆☆☆☆</div><div class="lesson-arrow">→</div></div>
+    </a>
+<a class="lesson-card" href="ders-18.html">
+      <div class="lesson-num">DERS 18</div>
+      <div class="lesson-title-text">Tüm Noktalama</div>
+      <div class="lesson-desc-text">Virgül, nokta, soru, ünlem birlikte.</div>
+      <div class="lesson-meta"><div class="lesson-stars" id="stars-18">☆☆☆☆☆</div><div class="lesson-arrow">→</div></div>
+    </a>
+</div>
+<div class="section-title">Büyük / Küçük Harf</div>
+<div class="lessons-grid">
+<a class="lesson-card" href="ders-19.html">
+      <div class="lesson-num">DERS 19</div>
+      <div class="lesson-title-text">Büyük Harf: Sol El Tuşları</div>
+      <div class="lesson-desc-text">Sol el tuşları için Sağ Shift kullanımı.</div>
+      <div class="lesson-meta"><div class="lesson-stars" id="stars-19">☆☆☆☆☆</div><div class="lesson-arrow">→</div></div>
+    </a>
+<a class="lesson-card" href="ders-20.html">
+      <div class="lesson-num">DERS 20</div>
+      <div class="lesson-title-text">Büyük Harf: Sağ El Tuşları</div>
+      <div class="lesson-desc-text">Sağ el tuşları için Sol Shift kullanımı.</div>
+      <div class="lesson-meta"><div class="lesson-stars" id="stars-20">☆☆☆☆☆</div><div class="lesson-arrow">→</div></div>
+    </a>
+<a class="lesson-card" href="ders-21.html">
+      <div class="lesson-num">DERS 21</div>
+      <div class="lesson-title-text">Büyük Harf: Karma Cümleler</div>
+      <div class="lesson-desc-text">Cümle başlarında büyük harf pratiği.</div>
+      <div class="lesson-meta"><div class="lesson-stars" id="stars-21">☆☆☆☆☆</div><div class="lesson-arrow">→</div></div>
+    </a>
+</div>
+
+</div>
+<footer>© 2025 Kariyerinde İlerle · Tüm hakları saklıdır</footer>
+<script>
+function toggleTheme(){
+  const day=document.body.classList.toggle('day');
+  document.getElementById('toggle-icon').textContent=day?'🌙':'☀️';
+  document.getElementById('toggle-label').textContent=day?'Gece Modu':'Gündüz Modu';
+}
+let scores={};
+try{scores=JSON.parse(localStorage.getItem('kiy_klub')||'{}');}catch(e){}
+for(let i=1;i<=21;i++){
+  const el=document.getElementById('stars-'+i);
+  if(!el) continue;
+  const s=scores[i];
+  if(s&&s.stars){
+    el.textContent='★'.repeat(s.stars)+'☆'.repeat(5-s.stars);
+    el.style.color='#26a69a';
+    el.closest('.lesson-card').classList.add('completed');
+  }
+}
+</script>
+</body>
+</html>
